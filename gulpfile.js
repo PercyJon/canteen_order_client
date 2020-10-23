@@ -1,100 +1,66 @@
-{
-  "name": "renren-fast-vue",
-  "version": "1.2.2",
-  "description": "renren-fast-vue基于vue、element-ui构建开发，实现renren-fast后台管理前端功能，提供一套更优的前端解决方案。",
-  "author": "daxiong.yang <daxiong.yang@qq.com>",
-  "private": true,
-  "scripts": {
-    "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
-    "start": "npm run dev",
-    "unit": "jest --config test/unit/jest.conf.js --coverage",
-    "e2e": "node test/e2e/runner.js",
-    "test": "npm run unit && npm run e2e",
-    "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
-    "build": "gulp"
-  },
-  "dependencies": {
-    "axios": "0.17.1",
-    "babel-plugin-component": "0.10.1",
-    "babel-polyfill": "6.26.0",
-    "element-ui": "2.8.2",
-    "gulp": "4.0.2",
-    "gulp-concat": "2.6.1",
-    "gulp-load-plugins": "2.0.5",
-    "gulp-replace": "1.0.0",
-    "gulp-shell": "0.8.0",
-    "lodash": "4.17.5",
-    "node-sass": "4.13.1",
-    "npm": "^6.9.0",
-    "sass-loader": "6.0.6",
-    "svg-sprite-loader": "3.7.3",
-    "vue": "2.5.16",
-    "vue-cookie": "1.1.4",
-    "vue-router": "3.0.1",
-    "vuex": "3.0.1"
-  },
-  "devDependencies": {
-    "autoprefixer": "7.1.2",
-    "babel-core": "6.22.1",
-    "babel-eslint": "7.1.1",
-    "babel-jest": "21.0.2",
-    "babel-loader": "7.1.1",
-    "babel-plugin-dynamic-import-node": "1.2.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "6.26.0",
-    "babel-plugin-transform-runtime": "6.22.0",
-    "babel-preset-env": "1.3.2",
-    "babel-preset-stage-2": "6.22.0",
-    "babel-register": "6.22.0",
-    "chalk": "2.3.0",
-    "chromedriver": "2.27.2",
-    "copy-webpack-plugin": "4.0.1",
-    "cross-spawn": "5.0.1",
-    "css-loader": "0.28.0",
-    "eslint": "3.19.0",
-    "eslint-config-standard": "10.2.1",
-    "eslint-friendly-formatter": "3.0.0",
-    "eslint-loader": "1.7.1",
-    "eslint-plugin-html": "3.0.0",
-    "eslint-plugin-import": "2.7.0",
-    "eslint-plugin-node": "5.2.0",
-    "eslint-plugin-promise": "3.5.0",
-    "eslint-plugin-standard": "3.0.1",
-    "eventsource-polyfill": "0.9.6",
-    "extract-text-webpack-plugin": "3.0.0",
-    "file-loader": "1.1.4",
-    "friendly-errors-webpack-plugin": "1.6.1",
-    "html-webpack-plugin": "2.30.1",
-    "jest": "21.2.0",
-    "jest-serializer-vue": "0.3.0",
-    "nightwatch": "0.9.12",
-    "node-notifier": "5.1.2",
-    "optimize-css-assets-webpack-plugin": "3.2.0",
-    "ora": "1.2.0",
-    "portfinder": "1.0.13",
-    "postcss-import": "11.0.0",
-    "postcss-loader": "2.0.8",
-    "rimraf": "2.6.0",
-    "selenium-server": "3.0.1",
-    "semver": "5.3.0",
-    "shelljs": "0.7.6",
-    "uglifyjs-webpack-plugin": "1.1.1",
-    "url-loader": "0.5.8",
-    "vue-jest": "1.0.2",
-    "vue-loader": "13.3.0",
-    "vue-style-loader": "3.0.1",
-    "vue-template-compiler": "2.5.16",
-    "webpack": "3.6.0",
-    "webpack-bundle-analyzer": "2.9.0",
-    "webpack-dev-server": "2.9.1",
-    "webpack-merge": "4.1.0"
-  },
-  "engines": {
-    "node": ">= 8.11.1",
-    "npm": ">= 5.6.0"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ]
-}
+var gulp = require('gulp');
+var $    = require('gulp-load-plugins')();
+var path = require('path');
+var del  = require('del');
+
+var distPath    = path.resolve('./dist');
+var version     = ''; // 版本号
+var versionPath = ''; // 版本号路径
+var env         = process.env.npm_config_qa ? 'qa' : process.env.npm_config_uat ? 'uat' : 'prod'; // 运行环境
+
+// 创建版本号(年月日时分)
+(function () {
+  var d = new Date();
+  var yy = d.getFullYear();
+  var MM = d.getMonth() + 1 >= 10 ? (d.getMonth() + 1) : '0' + (d.getMonth() + 1);
+  var DD = d.getDate() >= 10 ? d.getDate() : '0' + d.getDate();
+  var h  = d.getHours() >= 10 ? d.getHours() : '0' + d.getHours();
+  var mm = d.getMinutes() >= 10 ? d.getMinutes() : '0' + d.getMinutes();
+  version = yy + MM + DD + h + mm;
+  versionPath = distPath + '/' + version;
+})();
+
+// 编译
+gulp.task('build', $.shell.task([ 'node build/build.js' ]));
+
+// 创建版本号目录
+gulp.task('create:versionCatalog', function () {
+  return gulp.src(`${distPath}/static/**/*`)
+    .pipe(gulp.dest(`${versionPath}/static/`))
+});
+
+// 替换${versionPath}/static/js/manifest.js window.SITE_CONFIG.cdnUrl占位变量
+gulp.task('replace:cdnUrl', function () {
+  return gulp.src(`${versionPath}/static/js/manifest.js`)
+    .pipe($.replace(new RegExp(`"${require('./config').build.assetsPublicPath}"`, 'g'), 'window.SITE_CONFIG.cdnUrl + "/"'))
+    .pipe(gulp.dest(`${versionPath}/static/js/`))
+});
+
+// 替换${versionPath}/static/config/index-${env}.js window.SITE_CONFIG['version']配置变量
+gulp.task('replace:version', function () {
+  return gulp.src(`${versionPath}/static/config/index-${env}.js`)
+    .pipe($.replace(/window.SITE_CONFIG\['version'\] = '.*'/g, `window.SITE_CONFIG['version'] = '${version}'`))
+    .pipe(gulp.dest(`${versionPath}/static/config/`))
+});
+
+// 合并${versionPath}/static/config/[index-${env}, init].js 至 ${distPath}/config/index.js
+gulp.task('concat:config', function () {
+  return gulp.src([`${versionPath}/static/config/index-${env}.js`, `${versionPath}/static/config/init.js`])
+    .pipe($.concat('index.js'))
+    .pipe(gulp.dest(`${distPath}/config/`))
+});
+
+
+//清除, 编译 / 处理项目中产生的文件
+gulp.task('cleanBuild', function () {
+  return del([`${distPath}/static`, `${versionPath}/static/config`])
+});
+// 清空
+gulp.task('clean', function () {
+  return del([versionPath])
+});
+
+
+//gulp.series|4.0 依赖
+//gulp.parallel|4.0 多个依赖嵌套
+gulp.task('default',gulp.series(gulp.series('build','create:versionCatalog','replace:cdnUrl','replace:version','concat:config','cleanBuild')));
