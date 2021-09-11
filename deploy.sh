@@ -1,5 +1,5 @@
 #!/bin/bash 
-git filter-branch --env-filter ' 
+git filter-branch -f --env-filter ' 
 timeStamp=`date +%s`
 # # 加3年半
 # let futureTime=$timeStamp+$[$RANDOM*10000]
@@ -31,4 +31,4 @@ then
     # export GIT_COMMITTER_DATE="$c"
 fi
 
-' --tag-name-filter cat -- --branches --tags -f 
+' --tag-name-filter cat -- --branches --tags -f
