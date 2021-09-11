@@ -1,5 +1,5 @@
 #!/bin/bash 
-git filter-branch --env-filter ' 
+git filter-branch -f --env-filter ' 
 timeStamp=`date +%s`
 # # 加3年半
 # let futureTime=$timeStamp+$[$RANDOM*10000]
