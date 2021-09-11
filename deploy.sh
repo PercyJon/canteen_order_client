@@ -31,4 +31,4 @@ then
     # export GIT_COMMITTER_DATE="$c"
 fi
 
-' --tag-name-filter cat -- --branches --tags
+' --tag-name-filter cat -- --branches --tags -f 
